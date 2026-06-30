@@ -30,13 +30,15 @@ int cantidad = 0;
 //=========================
 
 //void agregarInvitado(invitados, cantidad);
+void cargarArchivo(Invitado invitados[], int &cantidad);
 void agregarInvitado(Invitado invitados[], int &cantidad);
 void modificarInvitado(Invitado invitados[], int cantidad);
-void eliminarInvitado();
-void listarAsistentes();
-void confirmarAsistencia();
-void cancelarAsistencia();
-void mostrarTodos();
+void eliminarInvitado(Invitado invitados[], int &cantidad);
+void listarAsistentes(Invitado invitados[], int cantidad);
+void confirmarAsistencia(Invitado invitados[], int cantidad);
+void cancelarAsistencia(Invitado invitados[], int cantidad);
+void mostrarTodos(Invitado invitados[], int cantidad);
+void guardarArchivo(Invitado invitados[], int cantidad);
 
 //=========================
 // MAIN
@@ -44,6 +46,8 @@ void mostrarTodos();
 
 int main()
 {
+    cargarArchivo(invitados, cantidad);
+
     int opcion;
 
     do
@@ -73,23 +77,23 @@ int main()
             break;
 
         case 3:
-            eliminarInvitado();
+            eliminarInvitado(invitados, cantidad);
             break;
 
         case 4:
-            listarAsistentes();
+            listarAsistentes(invitados, cantidad);
             break;
 
         case 5:
-            confirmarAsistencia();
+            confirmarAsistencia(invitados, cantidad);
             break;
 
         case 6:
-            cancelarAsistencia();
+            cancelarAsistencia(invitados, cantidad);
             break;
 
         case 7:
-            mostrarTodos();
+            mostrarTodos(invitados, cantidad);
             break;
 
         case 8:
@@ -108,7 +112,27 @@ int main()
 //=========================
 // FUNCIONES
 //=========================
+void cargarArchivo(Invitado invitados[], int &cantidad)
+{
+    ifstream archivo("invitados.dat", ios::binary);
+
+    if (!archivo)
+    {
+        return;
+    }
+
+    cantidad = 0;
+
+    while (archivo.read((char*)&invitados[cantidad], sizeof(Invitado)))
+    {
+        cantidad++;
+    }
+
+    archivo.close();
+}
+
    // Código para agregar un invitado
+
 void agregarInvitado(Invitado invitados[], int &cantidad)
 {
     ofstream archivo("invitados.dat", ios::binary | ios::app);
@@ -201,6 +225,7 @@ void modificarInvitado(Invitado invitados[], int cantidad)
 
             cout << "\nDatos modificados correctamente.\n";
 
+            guardarArchivo(invitados, cantidad);
             break;
         }
     }
@@ -211,27 +236,138 @@ void modificarInvitado(Invitado invitados[], int cantidad)
     }
 }
  // Código para eliminar un invitado
-void eliminarInvitado()
+void eliminarInvitado(Invitado invitados[], int &cantidad)
 {
-   
-}
+    int ticket;
+    bool encontrado = false;
 
-void listarAsistentes()
-{
-    // Mostrar únicamente los invitados confirmados
-}
+    cout << "\n----- ELIMINAR INVITADO -----\n";
+    if (cantidad == 0) {
+        cout << "La lista esta vacia. No hay a quien eliminar.\n";
+        return;
+    }
 
-void confirmarAsistencia()
-{
-    // Buscar por número de ticket y confirmar
-}
+    cout << "Ingrese el numero de Ticket a eliminar: ";
+    cin >> ticket;
 
-void cancelarAsistencia()
-{
-    // Buscar por número de ticket y cancelar
-}
+    for (int i = 0; i < cantidad; i++)
+    {
+        if (invitados[i].ticket == ticket)
+        {
+            encontrado = true;
+            // Desplazar todos los elementos siguientes un lugar hacia atrás
+            for (int j = i; j < cantidad - 1; j++)
+            {
+                invitados[j] = invitados[j + 1];
+            }
+            cantidad--; // Reducimos la cantidad total
+            guardarArchivo(invitados, cantidad); // Sobrescribimos el archivo con el nuevo tamaño
+            cout << "\nInvitado eliminado correctamente.\n";
+            break;
+        }
+    }
 
-void mostrarTodos()
+    if (!encontrado) cout << "\nNo existe un invitado con ese numero de Ticket.\n";
+}
+// Mostrar únicamente los invitados confirmados
+void listarAsistentes(Invitado invitados[], int cantidad)
 {
-    // Mostrar todos los invitados
+    cout << "\n----- ASISTENTES CONFIRMADOS -----\n";
+    bool hayConfirmados = false;
+    
+    for(int i = 0; i < cantidad; i++)
+    {
+        if(invitados[i].confirmado) // Solo entra si es true
+        {
+            cout << "Ticket: " << invitados[i].ticket << "\n";
+            cout << "Nombre: " << invitados[i].nombre << " " << invitados[i].apellido << "\n";
+            cout << "Telefono: " << invitados[i].telefono << "\n\n";
+            hayConfirmados = true;
+        }
+    }
+    
+    if(!hayConfirmados) cout << "Aun no hay asistentes confirmados.\n";
+}
+  // Buscar por número de ticket y confirmar
+void confirmarAsistencia(Invitado invitados[], int cantidad)
+{
+    int ticket;
+    bool encontrado = false;
+
+    cout << "\n----- CONFIRMAR ASISTENCIA -----\n";
+    cout << "Ingrese el numero de Ticket: ";
+    cin >> ticket;
+
+    for (int i = 0; i < cantidad; i++)
+    {
+        if (invitados[i].ticket == ticket)
+        {
+            invitados[i].confirmado = true; // Cambiamos el estado
+            encontrado = true;
+            guardarArchivo(invitados, cantidad); // Guardamos el cambio
+            cout << "\nAsistencia confirmada exitosamente.\n";
+            break;
+        }
+    }
+
+    if (!encontrado) cout << "\nNo existe un invitado con ese numero de Ticket.\n";
+}
+  // Buscar por número de ticket y cancelar
+void cancelarAsistencia(Invitado invitados[], int cantidad)
+{
+    int ticket;
+    bool encontrado = false;
+
+    cout << "\n----- CANCELAR ASISTENCIA -----\n";
+    cout << "Ingrese el numero de Ticket: ";
+    cin >> ticket;
+
+    for (int i = 0; i < cantidad; i++)
+    {
+        if (invitados[i].ticket == ticket)
+        {
+            invitados[i].confirmado = false; // Cambiamos el estado
+            encontrado = true;
+            guardarArchivo(invitados, cantidad); // Guardamos el cambio
+            cout << "\nAsistencia cancelada exitosamente.\n";
+            break;
+        }
+    }
+
+    if (!encontrado) cout << "\nNo existe un invitado con ese numero de Ticket.\n";
+}
+ // Mostrar todos los invitados
+void mostrarTodos(Invitado invitados[], int cantidad)
+{
+    cout << "\n----- LISTA COMPLETA DE INVITADOS -----\n";
+    if (cantidad == 0) cout << "La lista esta vacia.\n";
+    
+    for(int i = 0; i < cantidad; i++)
+    {
+        cout << "Ticket: " << invitados[i].ticket << "\n";
+        cout << "Nombre: " << invitados[i].nombre << " " << invitados[i].apellido << "\n";
+        cout << "Edad: " << invitados[i].edad << "\n";
+        cout << "Telefono: " << invitados[i].telefono << "\n";
+        cout << "Estado: " << (invitados[i].confirmado ? "Confirmado" : "No confirmado") << "\n";
+        cout << "---------------------------\n";
+    }
+}
+//guardar los datos en el archivo 
+void guardarArchivo(Invitado invitados[], int cantidad)
+{
+    // Agregamos ios::trunc para que limpie el archivo antes de reescribir los datos actualizados
+    ofstream archivo("invitados.dat", ios::binary | ios::trunc); 
+
+    if (!archivo)
+    {
+        cout << "Error al abrir el archivo para guardar." << endl;
+        return;
+    }
+
+    for (int i = 0; i < cantidad; i++)
+    {
+        archivo.write((char*)&invitados[i], sizeof(Invitado));
+    }
+
+    archivo.close();
 }
