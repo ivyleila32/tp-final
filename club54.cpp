@@ -130,9 +130,7 @@ void cargarArchivo(Invitado invitados[], int &cantidad)
 
     archivo.close();
 }
-
    // Código para agregar un invitado
-
 void agregarInvitado(Invitado invitados[], int &cantidad)
 {
     ofstream archivo("invitados.dat", ios::binary | ios::app);
